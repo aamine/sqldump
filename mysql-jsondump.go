@@ -12,7 +12,7 @@ import(
 
 func main() {
     if len(os.Args) != 7 {
-        errorExit(fmt.Sprintf("%s: wrong number of arguments (%v for %v)", os.Args[0], len(os.Args), 6))
+        usageExit("wrong number of arguments (%v for %v)", len(os.Args), 6)
     }
     host := os.Args[1]
     port := os.Args[2]
@@ -87,11 +87,21 @@ func unmarshalValue(data sql.RawBytes) interface{} {
     }
 }
 
-func info(format string, values ...interface{}) {
-    fmt.Fprintln(os.Stderr, time.Now().String() + ": " + fmt.Sprintf(format, values...))
+func info(format string, params ...interface{}) {
+    fmt.Fprintln(os.Stderr, time.Now().String() + ": " + fmt.Sprintf(format, params...))
 }
 
-func errorExit(msg string) {
-    fmt.Fprintf(os.Stderr, "%s: error: %s\n", os.Args[0], msg)
+func usageExit(format string, params ...interface{}) {
+    printError(format, params...)
+    fmt.Fprintln(os.Stderr, "Usage: mysql-jsondump HOST PORT USER PASSWORD DATABASE QUERY")
     os.Exit(1)
+}
+
+func errorExit(format string, params ...interface{}) {
+    printError(format, params...)
+    os.Exit(1)
+}
+
+func printError(format string, params ...interface{}) {
+    fmt.Fprintf(os.Stderr, "%s: error: %s\n", os.Args[0], fmt.Sprintf(format, params...))
 }
