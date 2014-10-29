@@ -3,7 +3,6 @@ package main
 import(
     "database/sql"
     _ "github.com/go-sql-driver/mysql"
-    "github.com/jmoiron/sqlx"
     "encoding/json"
     "os"
     "bufio"
@@ -31,19 +30,33 @@ func main() {
 
     info("[SQL] %s", query)
     rows, err := db.Query(query)
+    info("query returned")
+    defer rows.Close()
     if err != nil {
         errorExit(err.Error())
     }
-    defer rows.Close()
-    info("query returned")
+
+    columns, err := rows.Columns()
+    if err != nil {
+        errorExit(err.Error())
+    }
+    values := make([]sql.RawBytes, len(columns))
+    args := make([]interface{}, len(columns))
+    for i := range values {
+        args[i] = &values[i]
+    }
 
     f := bufio.NewWriter(os.Stdout)
     rec := make(map[string]interface{})
     n := 0
     for rows.Next() {
-        err := sqlx.MapScan(rows, rec)
+        err := rows.Scan(args...)
         if err != nil {
             errorExit(err.Error())
+        }
+
+        for i, val := range values {
+            rec[columns[i]] = unmarshalValue(val)
         }
         data, err := json.Marshal(rec)
         if err != nil {
@@ -65,8 +78,17 @@ func main() {
     info("Total %d records", n)
 }
 
+func unmarshalValue(data sql.RawBytes) interface{} {
+    if data == nil {
+        return nil
+    } else {
+        // FIXME
+        return string(data)
+    }
+}
+
 func info(format string, values ...interface{}) {
-    fmt.Fprintln(os.Stderr, time.Now().String() + ": " + fmt.Sprintf(format, values...))
+    fmt.Fprintln(os.Stderr, time.Now().String() + ": " + fmt.Sprintf(format, values))
 }
 
 func errorExit(msg string) {
