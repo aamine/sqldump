@@ -6,30 +6,33 @@ import(
     "encoding/json"
     "os"
     "bufio"
+    "compress/gzip"
     "fmt"
     "time"
+    "flag"
 )
 
-func main() {
-    if len(os.Args) != 7 {
-        usageExit("wrong number of arguments (%v for %v)", len(os.Args), 6)
-    }
-    host := os.Args[1]
-    port := os.Args[2]
-    user := os.Args[3]
-    password := os.Args[4]
-    database := os.Args[5]
-    query := os.Args[6]
+type options struct {
+    host string
+    port string
+    user string
+    password string
+    database string
+    query string
+    gzip bool
+}
 
-    connString := user + ":" + password + "@tcp(" + host + ":" + port + ")/" + database
+func main() {
+    opts := parseOptions()
+    connString := opts.user + ":" + opts.password + "@tcp(" + opts.host + ":" + opts.port + ")/" + opts.database
     db, err := sql.Open("mysql", connString)
     if err != nil {
         errorExit(err.Error())
     }
     defer db.Close()
 
-    info("[SQL] %s", query)
-    rows, err := db.Query(query)
+    info("[SQL] %s", opts.query)
+    rows, err := db.Query(opts.query)
     if err != nil {
         errorExit(err.Error())
     }
@@ -46,7 +49,8 @@ func main() {
         args[i] = &values[i]
     }
 
-    f := bufio.NewWriter(os.Stdout)
+    z := gzip.NewWriter(os.Stdout)
+    f := bufio.NewWriter(z)
     rec := make(map[string]interface{})
     n := 0
     for rows.Next() {
@@ -74,8 +78,28 @@ func main() {
         }
     }
     f.Flush()
+    z.Close()
 
     info("Total %d records", n)
+}
+
+func parseOptions() options {
+    gzipOpt := flag.Bool("gzip", false, "Enables gzip compression.")
+    flag.Parse()
+    args := flag.Args()
+    if len(args) != 6 {
+        usageExit("wrong number of arguments (%v for %v)", len(args), 6)
+    }
+    opts := options {}
+    opts.gzip = *gzipOpt
+    i := 0
+    opts.host = args[i]; i++
+    opts.port = args[i]; i++
+    opts.user = args[i]; i++
+    opts.password = args[i]; i++
+    opts.database = args[i]; i++
+    opts.query = args[i]; i++
+    return opts
 }
 
 func unmarshalValue(data sql.RawBytes) interface{} {
