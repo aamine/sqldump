@@ -117,7 +117,7 @@ func info(format string, params ...interface{}) {
 
 func usageExit(format string, params ...interface{}) {
     printError(format, params...)
-    fmt.Fprintln(os.Stderr, "Usage: mysql-jsondump HOST PORT USER PASSWORD DATABASE QUERY")
+    fmt.Fprintln(os.Stderr, "Usage: mysql-jsondump [--gzip] HOST PORT USER PASSWORD DATABASE QUERY > out.json")
     os.Exit(1)
 }
 
