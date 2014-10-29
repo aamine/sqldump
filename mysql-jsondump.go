@@ -30,11 +30,11 @@ func main() {
 
     info("[SQL] %s", query)
     rows, err := db.Query(query)
-    info("query returned")
-    defer rows.Close()
     if err != nil {
         errorExit(err.Error())
     }
+    defer rows.Close()
+    info("query returned")
 
     columns, err := rows.Columns()
     if err != nil {
@@ -82,16 +82,16 @@ func unmarshalValue(data sql.RawBytes) interface{} {
     if data == nil {
         return nil
     } else {
-        // FIXME
+        // FIXME: better way?
         return string(data)
     }
 }
 
 func info(format string, values ...interface{}) {
-    fmt.Fprintln(os.Stderr, time.Now().String() + ": " + fmt.Sprintf(format, values))
+    fmt.Fprintln(os.Stderr, time.Now().String() + ": " + fmt.Sprintf(format, values...))
 }
 
 func errorExit(msg string) {
-    // FIXME
-    panic(msg)
+    fmt.Fprintf(os.Stderr, "%s: error: %s\n", os.Args[0], msg)
+    os.Exit(1)
 }
