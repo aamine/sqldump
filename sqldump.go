@@ -13,6 +13,8 @@ import(
     "flag"
 )
 
+const ProgramVersion string = "1.0.0"
+
 type options struct {
     driver string
     host string
@@ -94,7 +96,12 @@ func parseOptions() options {
     tsvOpt := flag.Bool("tsv", false, "Enables TSV output.")
     jsonOpt := flag.Bool("json", false, "Enables JSON output. (default)")
     flag.BoolVar(&opts.gzip, "gzip", false, "Enables gzip compression.")
+    versionOpt := flag.Bool("version", false, "Shows version number and quit.")
     flag.Parse()
+    if *versionOpt {
+        fmt.Println("sqldump version " + ProgramVersion)
+        os.Exit(0)
+    }
     args := flag.Args()
     if len(args) != 6 {
         usageExit("wrong number of arguments (%v for %v)", len(args), 6)
