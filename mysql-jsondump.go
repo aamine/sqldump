@@ -5,6 +5,7 @@ import(
     _ "github.com/go-sql-driver/mysql"
     "encoding/json"
     "os"
+    "io"
     "bufio"
     "compress/gzip"
     "fmt"
@@ -49,8 +50,17 @@ func main() {
         args[i] = &values[i]
     }
 
-    z := gzip.NewWriter(os.Stdout)
-    f := bufio.NewWriter(z)
+    var w io.Writer
+    if opts.gzip {
+        z := gzip.NewWriter(os.Stdout)
+        defer z.Close()
+        w = z
+    } else {
+        w = os.Stdout
+    }
+    f := bufio.NewWriter(w)
+    defer f.Flush()
+
     rec := make(map[string]interface{})
     n := 0
     for rows.Next() {
@@ -77,8 +87,6 @@ func main() {
             info("read %d records...", n)
         }
     }
-    f.Flush()
-    z.Close()
 
     info("Total %d records", n)
 }
