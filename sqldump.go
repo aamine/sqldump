@@ -119,6 +119,7 @@ type generatorFunction func (f *bufio.Writer, columns []string, values []sql.Raw
 
 var jsonValueReplacer *strings.Replacer = strings.NewReplacer(
     "\"", "\\\"",
+    "\\", "\\\\",
     "\t", "\\t",
     "\r", "\\r",
     "\n", "\\n")
@@ -144,6 +145,7 @@ func generateJson(f *bufio.Writer, columns []string, values []sql.RawBytes) {
 }
 
 var tsvValueReplacer *strings.Replacer = strings.NewReplacer(
+    "\\", "\\\\",
     "\t", "\\t",
     "\r", "\\r",
     "\n", "\\n")
