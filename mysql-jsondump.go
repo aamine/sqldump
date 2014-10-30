@@ -3,10 +3,10 @@ package main
 import(
     "database/sql"
     _ "github.com/go-sql-driver/mysql"
-    "encoding/json"
     "os"
     "io"
     "bufio"
+    "strings"
     "compress/gzip"
     "fmt"
     "time"
@@ -61,25 +61,13 @@ func main() {
     f := bufio.NewWriter(w)
     defer f.Flush()
 
-    rec := make(map[string]interface{})
     n := 0
     for rows.Next() {
         err := rows.Scan(args...)
         if err != nil {
             errorExit(err.Error())
         }
-
-        for i, val := range values {
-            rec[columns[i]] = unmarshalValue(val)
-        }
-        data, err := json.Marshal(rec)
-        if err != nil {
-            errorExit(err.Error())
-        }
-        _, err = f.Write(data)
-        if err != nil {
-            errorExit(err.Error())
-        }
+        generateJson(f, columns, values)
         f.WriteString("\n")
 
         n++
@@ -110,13 +98,30 @@ func parseOptions() options {
     return opts
 }
 
-func unmarshalValue(data sql.RawBytes) interface{} {
-    if data == nil {
-        return nil
-    } else {
-        // FIXME: better way?
-        return string(data)
+var jsonValueReplacer *strings.Replacer = strings.NewReplacer(
+    "\"", "\\\"",
+    "\t", "\\t",
+    "\r", "\\r",
+    "\n", "\\n")
+
+func generateJson(f *bufio.Writer, columns []string, values []sql.RawBytes) {
+    f.WriteString("{")
+    sep := ""
+    for i, val := range values {
+        f.WriteString(sep); sep = ","
+        f.WriteString("\"")
+        name := columns[i]
+        f.WriteString(name)
+        f.WriteString("\":")
+        if val == nil {
+            f.WriteString("null")
+        } else {
+            f.WriteString("\"")
+            jsonValueReplacer.WriteString(f, string(val))
+            f.WriteString("\"")
+        }
     }
+    f.WriteString("}")
 }
 
 func info(format string, params ...interface{}) {
