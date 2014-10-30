@@ -1,18 +1,18 @@
-TARGETS = mysql-jsondump mysql-jsondump.Linux mysql-jsondump.Darwin
+TARGETS = sqldump sqldump.Linux sqldump.Darwin
 CFLAGS = -O2
 
-default: mysql-jsondump
+default: sqldump
 
 all: $(TARGETS)
 
-mysql-jsondump: mysql-jsondump.go
+sqldump: sqldump.go
 	go build
 
-mysql-jsondump.Darwin:
-	go build -ccflags "$(CFLAGS)" -o $@ mysql-jsondump.go
+sqldump.Darwin:
+	go build -ccflags "$(CFLAGS)" -o $@ sqldump.go
 
-mysql-jsondump.Linux:
-	GOOS=linux GOARCH=amd64 go build -x -ccflags "$(CFLAGS)" -o $@ mysql-jsondump.go
+sqldump.Linux:
+	GOOS=linux GOARCH=amd64 go build -x -ccflags "$(CFLAGS)" -o $@ sqldump.go
 
 clean:
 	rm -f $(TARGETS)
