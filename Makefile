@@ -5,7 +5,7 @@ default: mysql-jsondump
 
 all: $(TARGETS)
 
-mysql-jsondump:
+mysql-jsondump: mysql-jsondump.go
 	go build
 
 mysql-jsondump.Darwin:
