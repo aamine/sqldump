@@ -13,7 +13,9 @@ sqldump [--tsv] [--gzip] HOST PORT USER PASSWORD DATABASE QUERY > output_file
 Limitation
 ----------
 
-Currently, sqldump dumps all field values as strings.
+sqldump supports only MySQL still now.
+
+sqldump dumps all field values as strings.
 Many RDB automatically converts string to any types, it may not be a problem.
 
 
