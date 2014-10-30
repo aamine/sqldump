@@ -14,6 +14,7 @@ import(
 )
 
 type options struct {
+    driver string
     host string
     port string
     user string
@@ -27,7 +28,7 @@ type options struct {
 func main() {
     opts := parseOptions()
     connString := opts.user + ":" + opts.password + "@tcp(" + opts.host + ":" + opts.port + ")/" + opts.database
-    db, err := sql.Open("mysql", connString)
+    db, err := sql.Open(opts.driver, connString)
     if err != nil {
         errorExit(err.Error())
     }
@@ -88,22 +89,22 @@ func main() {
 }
 
 func parseOptions() options {
+    opts := options {format: "json"}
+    flag.StringVar(&opts.driver, "driver", "mysql", "Database driver name. (default: mysql)")
     tsvOpt := flag.Bool("tsv", false, "Enables TSV output.")
     jsonOpt := flag.Bool("json", false, "Enables JSON output. (default)")
-    gzipOpt := flag.Bool("gzip", false, "Enables gzip compression.")
+    flag.BoolVar(&opts.gzip, "gzip", false, "Enables gzip compression.")
     flag.Parse()
     args := flag.Args()
     if len(args) != 6 {
         usageExit("wrong number of arguments (%v for %v)", len(args), 6)
     }
-    opts := options {format: "json"}
     if *jsonOpt {
         opts.format = "json"
     }
     if *tsvOpt {
         opts.format = "tsv"
     }
-    opts.gzip = *gzipOpt
     i := 0
     opts.host = args[i]; i++
     opts.port = args[i]; i++
@@ -163,7 +164,7 @@ func info(format string, params ...interface{}) {
 
 func usageExit(format string, params ...interface{}) {
     printError(format, params...)
-    fmt.Fprintln(os.Stderr, "Usage: mysql-jsondump [--tsv] [--gzip] HOST PORT USER PASSWORD DATABASE QUERY > out.json")
+    fmt.Fprintln(os.Stderr, "Usage: sqldump [--tsv] [--gzip] HOST PORT USER PASSWORD DATABASE QUERY > out.json")
     flag.PrintDefaults()
     os.Exit(1)
 }

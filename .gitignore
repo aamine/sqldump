@@ -22,6 +22,6 @@ _testmain.go
 *.exe
 *.test
 
-/mysql-jsondump
-/mysql-jsondump.Darwin
-/mysql-jsondump.Linux
+/sqldump
+/sqldump.Darwin
+/sqldump.Linux
