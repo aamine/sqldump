@@ -20,6 +20,7 @@ type options struct {
     password string
     database string
     query string
+    format string
     gzip bool
 }
 
@@ -61,13 +62,20 @@ func main() {
     f := bufio.NewWriter(w)
     defer f.Flush()
 
+    var generate generatorFunction
+    if opts.format == "tsv" {
+        generate = generateTsv
+    } else {
+        generate = generateJson
+    }
+
     n := 0
     for rows.Next() {
         err := rows.Scan(args...)
         if err != nil {
             errorExit(err.Error())
         }
-        generateJson(f, columns, values)
+        generate(f, columns, values)
         f.WriteString("\n")
 
         n++
@@ -80,13 +88,21 @@ func main() {
 }
 
 func parseOptions() options {
+    tsvOpt := flag.Bool("tsv", false, "Enables TSV output.")
+    jsonOpt := flag.Bool("json", false, "Enables JSON output. (default)")
     gzipOpt := flag.Bool("gzip", false, "Enables gzip compression.")
     flag.Parse()
     args := flag.Args()
     if len(args) != 6 {
         usageExit("wrong number of arguments (%v for %v)", len(args), 6)
     }
-    opts := options {}
+    opts := options {format: "json"}
+    if *jsonOpt {
+        opts.format = "json"
+    }
+    if *tsvOpt {
+        opts.format = "tsv"
+    }
     opts.gzip = *gzipOpt
     i := 0
     opts.host = args[i]; i++
@@ -97,6 +113,8 @@ func parseOptions() options {
     opts.query = args[i]; i++
     return opts
 }
+
+type generatorFunction func (f *bufio.Writer, columns []string, values []sql.RawBytes)
 
 var jsonValueReplacer *strings.Replacer = strings.NewReplacer(
     "\"", "\\\"",
@@ -124,13 +142,28 @@ func generateJson(f *bufio.Writer, columns []string, values []sql.RawBytes) {
     f.WriteString("}")
 }
 
+var tsvValueReplacer *strings.Replacer = strings.NewReplacer(
+    "\t", "\\t",
+    "\r", "\\r",
+    "\n", "\\n")
+
+func generateTsv(f *bufio.Writer, columns []string, values []sql.RawBytes) {
+    sep := ""
+    for _, val := range values {
+        f.WriteString(sep); sep = "\t"
+        if val != nil {
+            tsvValueReplacer.WriteString(f, string(val))
+        }
+    }
+}
+
 func info(format string, params ...interface{}) {
     fmt.Fprintln(os.Stderr, time.Now().String() + ": " + fmt.Sprintf(format, params...))
 }
 
 func usageExit(format string, params ...interface{}) {
     printError(format, params...)
-    fmt.Fprintln(os.Stderr, "Usage: mysql-jsondump [--gzip] HOST PORT USER PASSWORD DATABASE QUERY > out.json")
+    fmt.Fprintln(os.Stderr, "Usage: mysql-jsondump [--tsv] [--gzip] HOST PORT USER PASSWORD DATABASE QUERY > out.json")
     os.Exit(1)
 }
 
