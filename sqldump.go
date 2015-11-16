@@ -82,7 +82,7 @@ func main() {
         f.WriteString("\n")
 
         n++
-        if n % 100000 == 0 {
+        if n % 1000000 == 0 {
             info("read %d records...", n)
         }
     }
