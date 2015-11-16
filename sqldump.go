@@ -13,7 +13,7 @@ import(
     "flag"
 )
 
-const ProgramVersion string = "1.0.1"
+const ProgramVersion string = "1.0.2"
 
 type options struct {
     driver string
