@@ -1,5 +1,4 @@
 TARGETS = sqldump sqldump.Linux sqldump.Darwin
-CFLAGS = -O2
 
 default: sqldump
 
@@ -9,10 +8,13 @@ sqldump: sqldump.go
 	go build
 
 sqldump.Darwin:
-	go build -ccflags "$(CFLAGS)" -o $@ sqldump.go
+	go build -o $@ sqldump.go
 
 sqldump.Linux:
-	GOOS=linux GOARCH=amd64 go build -x -ccflags "$(CFLAGS)" -o $@ sqldump.go
+	GOOS=linux GOARCH=amd64 go build -x -o $@ sqldump.go
 
 clean:
 	rm -f $(TARGETS)
+
+get:
+	go get github.com/go-sql-driver/mysql
