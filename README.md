@@ -7,7 +7,7 @@ Simple, fast RDB table dumper
 Usage
 -----
 
-sqldump [--tsv] [--gzip] HOST PORT USER PASSWORD DATABASE QUERY > output_file
+SQLDUMP_PASSWORD=PASSWORD sqldump [--tsv] [--gzip] HOST PORT USER DATABASE QUERY > output_file
 
 
 Limitation
@@ -28,4 +28,4 @@ MIT license.
 Copyright
 ---------
 
-Copyright (c) 2014 Minero Aoki
+Copyright (c) 2014-2017 Minero Aoki

@@ -103,8 +103,8 @@ func parseOptions() options {
         os.Exit(0)
     }
     args := flag.Args()
-    if len(args) != 6 {
-        usageExit("wrong number of arguments (%v for %v)", len(args), 6)
+    if len(args) != 5 {
+        usageExit("wrong number of arguments (%v for %v)", len(args), 5)
     }
     if *jsonOpt {
         opts.format = "json"
@@ -116,9 +116,12 @@ func parseOptions() options {
     opts.host = args[i]; i++
     opts.port = args[i]; i++
     opts.user = args[i]; i++
-    opts.password = args[i]; i++
     opts.database = args[i]; i++
     opts.query = args[i]; i++
+    opts.password = os.Getenv("SQLDUMP_PASSWORD")
+    if opts.password == "" {
+        usageExit("missing SQLDUMP_PASSWORD environment")
+    }
     return opts
 }
 
@@ -215,7 +218,7 @@ func info(format string, params ...interface{}) {
 
 func usageExit(format string, params ...interface{}) {
     printError(format, params...)
-    fmt.Fprintln(os.Stderr, "Usage: sqldump [--tsv] [--gzip] HOST PORT USER PASSWORD DATABASE QUERY > out.json")
+    fmt.Fprintln(os.Stderr, "Usage: SQLDUMP_PASSWORD=PASSWORD sqldump [--tsv] [--gzip] HOST PORT USER DATABASE QUERY > out.json")
     flag.PrintDefaults()
     os.Exit(1)
 }
